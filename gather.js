@@ -23,28 +23,96 @@
     }
 })();
 
-function jsFunctionParser(str) {
-    this.str = str;
-    this.split = str.match(/^.*([\n\r]+|$)/gm);
+/****************************************
+*     func
+*****************************************/
+function func(f) {
+    function switchOnType() {
+        if (Object.prototype.toString.call(f) === '[object Array]') return f;
+        else if (Object.prototype.toString.call(f) === '[object String]') return f.match(/^.*([\n\r]+|$)/gm);
+        else throw "Invalid type supplied to func(...)";
+    };
+
+    this.function_ = switchOnType();
 };
 
-jsFunctionParser.prototype = (function() {
+func.prototype = (function() {
+    return {
+        constructor:func,
+        
+        getFunction:function() { return this.function_.join(""); },
+        
+        getFunctionAsArray:function() { return this.function_; },
+        
+        getBody:function() { return this.function_.slice(1, this.function_.length-1).join("");  },
+        
+        injectAtEndOfFunction:function(str) {
+            if (!str.match(/\r\n/)) {
+                str += "\r\n";
+            }
+            
+            this.function_.splice(this.function_.length - 1, 0, str);            
+        },
+        
+        getName:function() {
+            var funcString = this.getFunction();
+            var i = funcString.indexOf(' ') + 1;
+            var functionName = "";
+            
+            while (funcString.charAt(i) != '(' && funcString.charAt(i) != ' ') {
+                functionName += funcString.charAt(i);
+                i++;
+            }
+            
+            return functionName;
+        },
+        
+        getArguments:function() {
+            var funcString = this.getFunction();
+            var openParen = funcString.indexOf('(');
+            var closeParen = funcString.indexOf(')');
+            var arguments = [];
+            var currentArgument = '';
+            for(var i=openParen+1; i<closeParen; i++) {
+                if (funcString.charAt(i) != ',') {
+                    currentArgument += funcString.charAt(i);
+                } else {
+                    arguments.push(currentArgument);
+                    currentArgument = '';
+                }
+            }
+            
+            arguments.push(currentArgument);
+            return arguments.join();
+        }
+    };
+})();
 
-    function findWordInstance(key) {
+/****************************************
+*     functionFactory
+*****************************************/
+
+function functionFactoryByKey(str, key) {
+    this.split = str.match(/^.*([\n\r]+|$)/gm);
+    this.key = key;
+};
+
+functionFactoryByKey.prototype = (function() {
+
+    function findWordInstance() {
         for(var i=0; i<this.split.length; i++) {
-            if (this.split[i].indexOf(key) != -1) {
+            if (this.split[i].indexOf(this.key) != -1) {
                 return i;
             }
         }
         
-        throw "Error locating function containing keyword: " + key;
+        throw "Error locating function containing keyword: " + this.key;
     };
   
     function findStartOfFunction(startAt) {
         for(var i = startAt; i>0; i--) {
             if (this.split[i].indexOf("function") != -1) {
                 return i;
-
             }
         }
         
@@ -75,53 +143,26 @@ jsFunctionParser.prototype = (function() {
         
         throw "Error locating end of function!";
     };
+    
+
 
     return {
-        constructor:jsFunctionParser,
-        
-        findFunctionFromKey:function(key) {
-            var midFunctionIndex = findWordInstance.call(this, key);
+        constructor:functionFactoryByKey,
+                
+        create:function() {
+            var midFunctionIndex = findWordInstance.call(this);
             var beginFunctionIndex = findStartOfFunction.call(this, midFunctionIndex);
-            var endOfFunctionIndex = findEndOfFunction.call(this, beginFunctionIndex);
-    
-            if (beginFunctionIndex == -1 || midFunctionIndex == -1 || endOfFunctionIndex == -1) {
+            var endFunctionIndex = findEndOfFunction.call(this, beginFunctionIndex);
+        
+            if (beginFunctionIndex >= midFunctionIndex || midFunctionIndex >= endFunctionIndex) {
                 throw "Error locating function!";
             }
-        
-            return this.split.slice(beginFunctionIndex, endOfFunctionIndex+1);
-        },
-        
-        findFunctionArguments:function(funcString) {
-            var openParen = funcString.indexOf('(');
-            var closeParen = funcString.indexOf(')');
-            var arguments = [];
-            var currentArgument = '';
-            for(var i=openParen+1; i<closeParen; i++) {
-                if (funcString.charAt(i) != ',') {
-                    currentArgument += funcString.charAt(i);
-                } else {
-                    arguments.push(currentArgument);
-                    currentArgument = '';
-                }
-            }
-            
-            arguments.push(currentArgument);
-            return arguments.join();
-        },
-        
-        findFunctionName:function(funcString) {
-            var firstSpace = funcString.indexOf(' ');
-            var i = firstSpace + 1;
-            var functionName = "";
-            while (funcString.charAt(i) != '(' && funcString.charAt(i) != ' ') {
-                functionName += funcString.charAt(i);
-                i++;
-            }
-            
-            return functionName;
+
+            return new func(this.split.slice(beginFunctionIndex, endFunctionIndex+1));
         }
     };
 })();
+  
     
 function getJsFile(elem) {
     var xhr = new XMLHttpRequest();
@@ -138,37 +179,24 @@ function getJsFile(elem) {
 
 
 function locateFunction(xhr) {
-    var functionFinder = new jsFunctionParser(xhr);
-    var functionToEval = "";
+    var f;
     try {
-        functionToEval = functionFinder.findFunctionFromKey("zIndex:2");
+        f = new functionFactoryByKey(xhr, "zIndex:2").create();
     } catch (e) {
         console.log("ERROR: " + e);
         throw e;
     }
     
-    
-    var body = functionToEval.join("");
-    var args = functionFinder.findFunctionArguments(body);
-    var name = functionFinder.findFunctionName(body);
-    
-    console.log(args);
-    console.log(name);
-    console.log(body);
-    
-    //window[name] = new Function(args, functionToEval);
-
-   // var sss = new Function(args, functionToEval);
-   // console.log(sss);
-    
-    //Inject custom code in functionToEval
-    //TODO: get argument, function name
-    //var sss = new Function("a", functionToEval);
-    //window["Jd"] = sss;
-    //console.log(sss);
+    var strToInject = "handlePortal(" + f.getArguments() + ");\r\n";
+   
+    f.injectAtEndOfFunction(strToInject);
+            
+    window[f.getName()] = new Function(f.getArguments(), f.getBody());
 };
 
-
+function handlePortal(s) {
+    console.log(s);
+}
 
 
 
@@ -190,7 +218,7 @@ function locateFunction(xhr) {
     }    
 })();
 
-function jsFunctionParser(str) {
+function functionFactoryByKey(str) {
     this.str = str;
     this.split = str.match(/^.*([\n\r]+|$)/gm);
     this.functions = [];
@@ -198,7 +226,7 @@ function jsFunctionParser(str) {
     this.openBrackets = 0;
 };
 
-jsFunctionParser.prototype = (function() {
+functionFactoryByKey.prototype = (function() {
 
     function parsingFunction() {
         return this.openBrackets > 0;
@@ -242,7 +270,7 @@ jsFunctionParser.prototype = (function() {
     };
 
     return {
-        constructor:jsFunctionParser,
+        constructor:functionFactoryByKey,
 
         findInjectableFunction:function() {
             parseFunctionsOut.call(this);
@@ -262,7 +290,7 @@ function injected(a) {
 };
 
 
-function getFunctionNameFromFullDeclaration(name) {
+function getFunctionAsArrayAsArrayNameFromFullDeclaration(name) {
     var end = name.indexOf('(');
     var begin = end;
 
@@ -292,7 +320,7 @@ function findNewFunctionName(xhr) {
         }
     } 
 
-    var global_name = getFunctionNameFromFullDeclaration(fn_str);
+    var global_name = getFunctionAsArrayAsArrayNameFromFullDeclaration(fn_str);
     console.log("Overriding function: " + global_name);
     window[global_name] = injected;
 }
