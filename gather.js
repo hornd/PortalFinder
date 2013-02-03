@@ -22,146 +22,6 @@
         }
     }
 })();
-
-/****************************************
-*     func
-*****************************************/
-function func(f) {
-    function switchOnType() {
-        if (Object.prototype.toString.call(f) === '[object Array]') return f;
-        else if (Object.prototype.toString.call(f) === '[object String]') return f.match(/^.*([\n\r]+|$)/gm);
-        else throw "Invalid type supplied to func(...)";
-    };
-
-    this.function_ = switchOnType();
-};
-
-func.prototype = (function() {
-    return {
-        constructor:func,
-        
-        getFunction:function() { return this.function_.join(""); },
-        
-        getFunctionAsArray:function() { return this.function_; },
-        
-        getBody:function() { return this.function_.slice(1, this.function_.length-1).join("");  },
-        
-        injectAtEndOfFunction:function(str) {
-            if (!str.match(/\r\n/)) {
-                str += "\r\n";
-            }
-            
-            this.function_.splice(this.function_.length - 1, 0, str);            
-        },
-        
-        getName:function() {
-            var funcString = this.getFunction();
-            var i = funcString.indexOf(' ') + 1;
-            var functionName = "";
-            
-            while (funcString.charAt(i) != '(' && funcString.charAt(i) != ' ') {
-                functionName += funcString.charAt(i);
-                i++;
-            }
-            
-            return functionName;
-        },
-        
-        getArguments:function() {
-            var funcString = this.getFunction();
-            var openParen = funcString.indexOf('(');
-            var closeParen = funcString.indexOf(')');
-            var arguments = [];
-            var currentArgument = '';
-            for(var i=openParen+1; i<closeParen; i++) {
-                if (funcString.charAt(i) != ',') {
-                    currentArgument += funcString.charAt(i);
-                } else {
-                    arguments.push(currentArgument);
-                    currentArgument = '';
-                }
-            }
-            
-            arguments.push(currentArgument);
-            return arguments.join();
-        }
-    };
-})();
-
-/****************************************
-*     functionFactory
-*****************************************/
-
-function functionFactoryByKey(str, key) {
-    this.split = str.match(/^.*([\n\r]+|$)/gm);
-    this.key = key;
-};
-
-functionFactoryByKey.prototype = (function() {
-
-    function findWordInstance() {
-        for(var i=0; i<this.split.length; i++) {
-            if (this.split[i].indexOf(this.key) != -1) {
-                return i;
-            }
-        }
-        
-        throw "Error locating function containing keyword: " + this.key;
-    };
-  
-    function findStartOfFunction(startAt) {
-        for(var i = startAt; i>0; i--) {
-            if (this.split[i].indexOf("function") != -1) {
-                return i;
-            }
-        }
-        
-        throw "Error locating start of function!";
-    };
-    
-    function findEndOfFunction(startAt) {
-        var i = startAt;
-        var openBracket = 0;
-        var closeBracket = 0;
-        while(i < this.split.length) {
-            var curLine = this.split[i];
-            for(var j=0; j<curLine.length; j++) {
-                if (curLine.charAt(j) == '{') {
-                    openBracket++;
-                }
-                if (curLine.charAt(j) == '}') {
-                    closeBracket++;
-                }
-            }
-                    
-            if (openBracket == closeBracket) {
-                return i;
-            }
-        
-            i++;
-        }
-        
-        throw "Error locating end of function!";
-    };
-    
-
-
-    return {
-        constructor:functionFactoryByKey,
-                
-        create:function() {
-            var midFunctionIndex = findWordInstance.call(this);
-            var beginFunctionIndex = findStartOfFunction.call(this, midFunctionIndex);
-            var endFunctionIndex = findEndOfFunction.call(this, beginFunctionIndex);
-        
-            if (beginFunctionIndex >= midFunctionIndex || midFunctionIndex >= endFunctionIndex) {
-                throw "Error locating function!";
-            }
-
-            return new func(this.split.slice(beginFunctionIndex, endFunctionIndex+1));
-        }
-    };
-})();
   
     
 function getJsFile(elem) {
@@ -195,10 +55,27 @@ function locateFunction(xhr) {
 };
 
 function handlePortal(s) {
-    console.log(s);
+    var tmp = {};
+    var stck = [];
+    for (var prop in s) {
+        tmp[prop] = s[prop]
+        
+    }
+    
+        console.log(tmp);
 }
 
+/*
+  obj.d contains the following fields:
+      Hb/Ib      : location  (lat/lon)
+      Q          : Array of mods
+      Y          :
+        Y.L      : owner
+      e          : Portal level?
+      isCaptured : Is this portal captured?
+      v          : Array of resonators
 
+*/
 
 
 /*
