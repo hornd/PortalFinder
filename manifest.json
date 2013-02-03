@@ -1,0 +1,17 @@
+{
+  "manifest_version": 2,
+
+  "name": "Ingress Neutral Portal Finder",
+  "description": "TODO",
+  "version": "0.1",
+
+  "web_accessible_resources": [
+    "gather.js"
+  ],
+
+  "content_scripts": [{
+    "run_at": "document_start",
+    "matches": ["http://*.ingress.com/intel*"],
+    "js": ["launch.js"]
+  }]
+}
