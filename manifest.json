@@ -9,7 +9,8 @@
     "gather.js",
     "func.js",
     "factory.js",
-    "portal.js"
+    "portal.js",
+    "resonator.js"
   ],
 
   "content_scripts": [{

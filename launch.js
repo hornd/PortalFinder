@@ -5,6 +5,7 @@ function createScript(scriptName) {
 };
 
 function insertAllScripts(scriptNode) {
+    scriptNode.parentNode.insertBefore(createScript('resonator.js'), scriptNode.nextSibling);
     scriptNode.parentNode.insertBefore(createScript('portal.js'), scriptNode.nextSibling);
     scriptNode.parentNode.insertBefore(createScript('func.js'), scriptNode.nextSibling);
     scriptNode.parentNode.insertBefore(createScript('factory.js'), scriptNode.nextSibling);

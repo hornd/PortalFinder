@@ -19,14 +19,6 @@ function portal(portalNative) {
 portal.prototype = (function() {
     return {
         constructor:portal,
-        
-        addResonator:function(res) { 
-            this.resonators.push(res);
-        },
-        
-        addMod:function(mod) { 
-            this.mods.push(mod);
-        }
     };
 })();
 
@@ -54,6 +46,22 @@ function portalFactory() {
         }
    
     };
+    
+    function doMod(curVal) {
+        console.log("Mod: " + curVal);
+    }
+            
+    function isResonatorArray(curVal) {
+        var isMod = false;
+
+        for(var n in curVal[0]) {
+            if (n === "name") {
+                isMod = true;
+            }
+        }
+        
+        return !isMod;
+    }
                 
     function pull() {
         possibleLatLonValues = [];
@@ -66,8 +74,12 @@ function portalFactory() {
                 this.portal_.guid = curVal;
             } else if (typeof curVal === "number" && curVal <= 8) {
                 this.portal_.level = curVal;
-            } else if (Object.prototype.toString.call(curVal) == '[object Array]') {
-                //Handle possible resonators/mods
+            } else if (Object.prototype.toString.call(curVal) == '[object Array]' && curVal.length > 0) {
+                if (isResonatorArray(curVal)) {
+                    this.portal_.resonators = resonatorArrayFactory.create(curVal);
+                } else {
+                
+                }
             }
             
         });
@@ -80,6 +92,7 @@ function portalFactory() {
 
     this.go = function(portalNative) {
         setPortal(portalNative);
+        console.log(portalNative);
         pull();
         return getPortal();
     };
