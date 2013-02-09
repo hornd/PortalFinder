@@ -3,7 +3,7 @@
     window.neutralNodes = [];
     window.latitudes = [];
     window.longitudes = [];
-
+    
     window.oldMapConstructor = google.maps.Map;
 
     google.maps.Map = function (arg, opts) {
@@ -55,15 +55,19 @@ function locateFunction(xhr) {
 };
 
 function handlePortal(s) {
-    var tmp = {};
+    var portalDefinition;
     var stck = [];
     for (var prop in s) {
-        tmp[prop] = s[prop]
-        
+        if (s[prop].hasOwnProperty('isCaptured')) {
+            portalDefinition = s[prop];
+            break;
+        }       
     }
     
-        console.log(tmp);
+    var p = portalFactory.create(portalDefinition);
+    console.log(p);
 }
+
 
 /*
   obj.d contains the following fields:
@@ -74,150 +78,5 @@ function handlePortal(s) {
       e          : Portal level?
       isCaptured : Is this portal captured?
       v          : Array of resonators
-
-*/
-
-
-/*
-(function ctor() {
-    window.mapAccessor = [];
-    window.neutralNodes = [];
-    window.latitudes = [];
-    window.longitudes = [];
-
-    window.oldMapConstructor = google.maps.Map;
-
-    google.maps.Map = function (arg, opts) {
-        console.log("Grabbing map instance.");
-        map = new window.oldMapConstructor(arg, opts);
-        window.mapAccessor = map;
-        return map;
-    }    
-})();
-
-function functionFactoryByKey(str) {
-    this.str = str;
-    this.split = str.match(/^.*([\n\r]+|$)/gm);
-    this.functions = [];
-
-    this.openBrackets = 0;
-};
-
-functionFactoryByKey.prototype = (function() {
-
-    function parsingFunction() {
-        return this.openBrackets > 0;
-    };
-
-    function updateBrackets(line) {
-        for (var char in line) {
-            if (char == '{') {
-                this.openBrackets++;
-            } else if (char == '}') {
-                this.openBrackets--;
-            }
-        }
-    };
-
-    function parseFunctionsOut() {
-        var currentFunctionString = "";
-        for (var line in this.split) {
-            currentFunctionString += line;
-            updateBrackets(line);
-
-            if (beginningOfFunction(line)) {
-                console.log("Detected start of function");
-            }
-            else if (endOfFunction(line)) {
-                console.log("Detected end of function");
-                this.functions.push(currentFunctionString);
-                currentFunctionString = "";
-            }
-
-	    console.log(line);
-        }
-    };
-
-    function endOfFunction(line) {
-        return !parsingFunction() && line.indexOf("}") != -1;
-    };
-
-    function beginningOfFunction(line) {
-        return parsingFunction() && line.indexOf("function") != -1;
-    };
-
-    return {
-        constructor:functionFactoryByKey,
-
-        findInjectableFunction:function() {
-            parseFunctionsOut.call(this);
-        }
-    };
-})();
-
-
-function injected(a) {
-
-    google.maps.event.clearListeners(a.G, "click");
-    if (!a.c.isCaptured && isNewNeutral(a)) {
-	sawNewNeutral(a.c);
-    }
-    b = new U(a.d);
-    google.maps.event.addListener(a.G, "click", t(b.show, b, a.h))
-};
-
-
-function getFunctionAsArrayAsArrayNameFromFullDeclaration(name) {
-    var end = name.indexOf('(');
-    var begin = end;
-
-    if (end < 0) {
-        alert("This is bad, abort (2)");
-    }
-
-    while(name[--begin] != ' ');
-    return name.substring(begin, end).replace(/\s+/g, '');
-}
-
-function findNewFunctionName(xhr) {
-    var ss = xhr;
-    var indx = xhr.indexOf("zIndex:2");
-
-    if (indx == -1) {
-        alert("This is bad, abort");
-        return;
-    }
-
-    var fn_str;
-    for(var i = indx - 10; i>0; i-=10) {
-        var fn = xhr.indexOf("function", i);
-        if (fn < indx) {
-            fn_str = xhr.substring(fn, fn+14);
-            break;
-        }
-    } 
-
-    var global_name = getFunctionAsArrayAsArrayNameFromFullDeclaration(fn_str);
-    console.log("Overriding function: " + global_name);
-    window[global_name] = injected;
-}
-
-
-function isNewNeutral(a) {
-    if (a.c in window.neutralNodes) return false;
-    if (a.c.Hb in window.latitudes && a.c.Ib in window.longitudes) return false;
-    return true;
-};
-
-function sawNewNeutral(a) {
-    console.log("Found a previously unseen neutral node");
-    console.log(a);
-    latitudes.push(a.Hb);
-    longitudes.push(a.Ib);
-};
-
-document.addEventListener('DOMContentLoaded', function() {
-    document.body.appendChild(createScript());
-});
 
 */
