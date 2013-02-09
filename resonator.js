@@ -1,8 +1,6 @@
 function resonator(raw) {
     this.raw = raw;
     this.level = -1;
-    this.owner = "";
-    this.guid = "";
 }
 
 resonator.prototype = (function() {
@@ -11,12 +9,6 @@ resonator.prototype = (function() {
         
         setLevel:function(lev) { this.level = lev; },
         getLevel:function() { return this.level; },
-        
-        setOwner:function(own) { this.owner = own; },
-        getOwner:function() { return this.owner; },
-        
-        setGuid:function(id) { this.guid = id; },
-        getGuid:function() { return this.guid; }
     };
 })();
 
@@ -26,8 +18,16 @@ function resonatorArrayFactory() {
 
     function setArray(r) { this.raw = r; }
 
+    
     this.go = function(resonatorNative) {
+        this.allResonators = [];
         setArray(resonatorNative);
+        for(var p in this.raw) {
+            var curRes = new resonator(p);
+            for(var q in curRes) {
+                
+            }
+        }
     };
 };
 
