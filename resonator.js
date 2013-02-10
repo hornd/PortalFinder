@@ -14,20 +14,27 @@ resonator.prototype = (function() {
 
 function resonatorArrayFactory() {
 
-    this.raw = [];
-
-    function setArray(r) { this.raw = r; }
-
-    
     this.go = function(resonatorNative) {
-        this.allResonators = [];
-        setArray(resonatorNative);
-        for(var p in this.raw) {
+        var allResonators = [];
+
+	for(var i=0; i<resonatorNative.length; i++) {
+	    var possibleLevels = [];
+	    var p = resonatorNative[i];
             var curRes = new resonator(p);
-            for(var q in curRes) {
-                
-            }
+
+	    Object.keys(p).forEach(function(key) {
+               var curVal = p[key]
+		if (typeof curVal === "number" && curVal <= 8) {
+		    possibleLevels.push(curVal);
+		}
+            });
+
+	    curRes.setLevel((possibleLevels.length == 1 ? possibleLevels[0] : -1));
+	    
+	    allResonators.push(curRes);
         }
+
+	return allResonators;
     };
 };
 

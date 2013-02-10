@@ -11,7 +11,7 @@ function portal(portalNative) {
     this.guid = "";
     
     this.resonators = [];
-    this.mods = [];
+    this.numShields = -1;
     
     this.raw = portalNative;
 };
@@ -47,8 +47,14 @@ function portalFactory() {
    
     };
     
-    function doMod(curVal) {
-        console.log("Mod: " + curVal);
+    function findTeam(curVal) {
+	for(var p in curVal) {
+	    if (curVal[p] === "Resistance") {
+		this.portal_.team = TEAM.BLUE;
+	    } else if (curVal[p] == "Enlightened") {
+		this.portal_.team = TEAM.GREEN;
+	    }
+	}
     }
             
     function isResonatorArray(curVal) {
@@ -74,11 +80,13 @@ function portalFactory() {
                 this.portal_.guid = curVal;
             } else if (typeof curVal === "number" && curVal <= 8) {
                 this.portal_.level = curVal;
-            } else if (Object.prototype.toString.call(curVal) == '[object Array]' && curVal.length > 0) {
+            } else if (curVal != null && typeof curVal === 'object') {
+		findTeam(curVal);
+	    } else if (Object.prototype.toString.call(curVal) == '[object Array]' && curVal.length > 0) {
                 if (isResonatorArray(curVal)) {
                     this.portal_.resonators = resonatorArrayFactory.create(curVal);
                 } else {
-                
+                    this.portal_.numShields = curVal.length;
                 }
             }
             
@@ -91,8 +99,8 @@ function portalFactory() {
     };
 
     this.go = function(portalNative) {
+	console.log(portalNative);
         setPortal(portalNative);
-        console.log(portalNative);
         pull();
         return getPortal();
     };
