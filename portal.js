@@ -48,13 +48,13 @@ function portalFactory() {
     };
     
     function findTeam(curVal) {
-	for(var p in curVal) {
-	    if (curVal[p] === "Resistance") {
-		this.portal_.team = TEAM.BLUE;
-	    } else if (curVal[p] == "Enlightened") {
-		this.portal_.team = TEAM.GREEN;
-	    }
-	}
+		for(var p in curVal) {
+			if (curVal[p] === "Resistance") {
+				this.portal_.team = TEAM.BLUE;
+			} else if (curVal[p] == "Enlightened") {
+				this.portal_.team = TEAM.GREEN;
+			}
+		}
     }
             
     function isResonatorArray(curVal) {
@@ -81,15 +81,14 @@ function portalFactory() {
             } else if (typeof curVal === "number" && curVal <= 8) {
                 this.portal_.level = curVal;
             } else if (curVal != null && typeof curVal === 'object') {
-		findTeam(curVal);
-	    } else if (Object.prototype.toString.call(curVal) == '[object Array]' && curVal.length > 0) {
+				findTeam(curVal);
+			} else if (Object.prototype.toString.call(curVal) == '[object Array]' && curVal.length > 0) {
                 if (isResonatorArray(curVal)) {
                     this.portal_.resonators = resonatorArrayFactory.create(curVal);
                 } else {
                     this.portal_.numShields = curVal.length;
                 }
             }
-            
         });
        
         this.portal_.title = this.raw.title;
@@ -99,7 +98,6 @@ function portalFactory() {
     };
 
     this.go = function(portalNative) {
-	console.log(portalNative);
         setPortal(portalNative);
         pull();
         return getPortal();

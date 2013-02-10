@@ -1,17 +1,24 @@
 (function ctor() {
     window.mapAccessor = [];
-    window.neutralNodes = [];
-    window.latitudes = [];
-    window.longitudes = [];
-    
+    window.markers = [];
+    window.allPortals = [];
+
     window.oldMapConstructor = google.maps.Map;
+    window.oldMapMarker = google.maps.Marker;
 
     google.maps.Map = function (arg, opts) {
         console.log("Grabbing map instance.");
         map = new window.oldMapConstructor(arg, opts);
         window.mapAccessor = map;
         return map;
-    }    
+    };
+
+    google.maps.Marker = function (pos, title) {
+		var marker = new window.oldMapMarker(pos, title);
+		window.markers.push(marker);
+		return marker;
+    };
+
 })();
 
 (function findInjectee(elem) {
@@ -54,6 +61,18 @@ function locateFunction(xhr) {
     window[f.getName()] = new Function(f.getArguments(), f.getBody());
 };
 
+function portalAlreadyCaptured(portal) {
+    for(var per in window.allPortals) {
+	var p = window.allPortals[per];
+		if (p.guid == portal.guid) {
+			console.log("Already captured");
+			return true;
+		}
+    }
+
+    return false;
+};
+
 function handlePortal(s) {
     var portalDefinition;
     var stck = [];
@@ -65,18 +84,8 @@ function handlePortal(s) {
     }
     
     var p = portalFactory.create(portalDefinition);
-    console.log(p);
-}
 
-
-/*
-  obj.d contains the following fields:
-      Hb/Ib      : location  (lat/lon)
-      Q          : Array of mods
-      Y          :
-        Y.L      : owner
-      e          : Portal level?
-      isCaptured : Is this portal captured?
-      v          : Array of resonators
-
-*/
+    if (!portalAlreadyCaptured(p)) {
+		window.allPortals.push(p);
+    }
+};
